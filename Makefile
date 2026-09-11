@@ -84,6 +84,11 @@ DUREN_PAK_AUDIO := sd_content/roms/homebrew/duren_audio.pak
 DUREN_PAK_LANG := sd_content/roms/homebrew/duren_lang.pak
 # Extra files staged under /homebrews/ in the GitHub release install zip.
 RELEASE_EXTRAS := $(DUREN_PAK_OUT)
+# The shared dist scripts read SIDECARS. Same list, our spelling; upstream's
+# name stays the source of truth so merging from it needs no edit here.
+SIDECARS       := $(RELEASE_EXTRAS)
+# Published full size beside the release; the packed cover derives from it.
+COVER_FULL     := src/assets/cover_src.png
 
 #######################################
 # Packed header version
@@ -132,12 +137,23 @@ pack: $(TARGET_BIN) $(COVER_JPG) $(DUREN_PAK_OUT)
 
 all: pack
 
-.PHONY: print-PROJECT_KIND print-PACKED_BIN print-CORE_NAME print-DOCKER_IMAGE \
+.PHONY: print-PROJECT_KIND print-PACKED_BIN print-SIDECARS print-RO_BIN print-CORE_NAME \
+	print-COVER_FULL print-DOCKER_IMAGE \
 	print-TARGET_ELF print-TARGET_MAP print-CORE_VERSION print-RELEASE_EXTRAS
 print-PROJECT_KIND:
 	@echo $(PROJECT_KIND)
 print-PACKED_BIN:
 	@echo $(PACKED_BIN)
+# Extra device files installed beside PACKED_BIN, space separated: here the
+# 5.6 MiB resource pack the game opens from its own folder. RO_BIN is the older
+# single-slot spelling, read for every project so the shared stage_release.py
+# needs no per-project variant.
+print-SIDECARS:
+	@echo $(SIDECARS)
+print-RO_BIN:
+	@echo $(RO_BIN)
+print-COVER_FULL:
+	@echo $(COVER_FULL)
 print-CORE_NAME:
 	@echo $(CORE_NAME)
 print-DOCKER_IMAGE:
