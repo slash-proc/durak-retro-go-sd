@@ -35,6 +35,7 @@ MAKE_VARS = (
     "DOCKER_IMAGE",
     "TARGET_ELF",
     "TARGET_MAP",
+    "RELEASE_EXTRAS",
 )
 
 HEADING_RE = re.compile(
@@ -124,6 +125,7 @@ def build_release_notes(
     docker_image: str,
     archive_name: str,
     debug_archive_name: str,
+    extra_names: list[str],
 ) -> str:
     sdk_version = (ROOT / "SDK_VERSION").read_text(encoding="utf-8").strip()
     install_path = f"/{sd_dir}/{packed_name}"
@@ -155,6 +157,10 @@ def build_release_notes(
         sdk_version,
         "```",
     ]
+    if extra_names:
+        lines.append("- Sidecar files (same SD folder as the binary):")
+        for name in extra_names:
+            lines.append(f"  - `/{sd_dir}/{name}`")
     if project_kind == "core":
         lines.append(f"- Test ROMs: `/roms/{core_name}/`")
     else:
@@ -215,12 +221,28 @@ def stage_release(
     sd_bin = sd_root / packed_name
     shutil.copy2(bin_path, sd_bin)
 
+    # Sidecars (e.g. Duren.pak): look next to --bin first (CI dist/), then repo root.
+    extra_names = [n for n in cfg.get("RELEASE_EXTRAS", "").split() if n]
+    zip_members: list[tuple[Path, str]] = [(sd_bin, f"{sd_dir}/{packed_name}")]
+    for name in extra_names:
+        src = bin_path.parent / name
+        if not src.is_file():
+            src = ROOT / name
+        if not src.is_file():
+            raise SystemExit(
+                f"release extra not found: {name} "
+                f"(looked in {bin_path.parent} and {ROOT})"
+            )
+        dest = sd_root / name
+        shutil.copy2(src, dest)
+        zip_members.append((dest, f"{sd_dir}/{name}"))
+
     stem = Path(packed_name).stem
     tag_slug = slug(tag)
 
     archive_name = f"{stem}-{tag_slug}.zip"
     archive_path = out_dir / archive_name
-    write_zip(archive_path, [(sd_bin, f"{sd_dir}/{packed_name}")])
+    write_zip(archive_path, zip_members)
 
     debug_archive_name = f"{stem}-{tag_slug}-debug.zip"
     debug_archive_path = out_dir / debug_archive_name
@@ -245,6 +267,7 @@ def stage_release(
             docker_image=resolved_docker,
             archive_name=archive_name,
             debug_archive_name=debug_archive_name,
+            extra_names=extra_names,
         ),
         encoding="utf-8",
     )
@@ -261,6 +284,8 @@ def stage_release(
     print(f"project_kind={project_kind}")
     print(f"packed_bin={packed_name}")
     print(f"sd_path=/{sd_dir}/{packed_name}")
+    for name in extra_names:
+        print(f"sd_extra=/{sd_dir}/{name}")
     print(f"archive={archive_path}")
     print(f"debug_archive={debug_archive_path}")
     print(f"notes={notes_path}")

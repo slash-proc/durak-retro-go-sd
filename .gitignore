@@ -7,6 +7,11 @@
 *.su
 *.lst
 *_host
+Duren_host
+Duren.pak
 host_saves/
+host_data/Duren.pak
 .DS_Store
 __pycache__/
+host_data/duren_*.sav
+host_data/duren_*.dat

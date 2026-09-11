@@ -44,14 +44,17 @@ jobs:
           PACKED_BIN="$(make --no-print-directory -f Makefile print-PACKED_BIN)"
           TARGET_ELF="$(make --no-print-directory -f Makefile print-TARGET_ELF)"
           TARGET_MAP="$(make --no-print-directory -f Makefile print-TARGET_MAP)"
+          RELEASE_EXTRAS="$(make --no-print-directory -f Makefile print-RELEASE_EXTRAS)"
           echo "project_kind=${PROJECT_KIND}" >> "${GITHUB_OUTPUT}"
           echo "packed_bin=${PACKED_BIN}" >> "${GITHUB_OUTPUT}"
           echo "target_elf=${TARGET_ELF}" >> "${GITHUB_OUTPUT}"
           echo "target_map=${TARGET_MAP}" >> "${GITHUB_OUTPUT}"
+          echo "release_extras=${RELEASE_EXTRAS}" >> "${GITHUB_OUTPUT}"
           echo "PROJECT_KIND=${PROJECT_KIND}"
           echo "PACKED_BIN=${PACKED_BIN}"
           echo "TARGET_ELF=${TARGET_ELF}"
           echo "TARGET_MAP=${TARGET_MAP}"
+          echo "RELEASE_EXTRAS=${RELEASE_EXTRAS}"
 
       - name: Build (Docker)
         run: |
@@ -69,6 +72,7 @@ jobs:
             ${{ steps.meta.outputs.packed_bin }}
             ${{ steps.meta.outputs.target_elf }}
             ${{ steps.meta.outputs.target_map }}
+            Duren.pak
           if-no-files-found: error
 
   release:
