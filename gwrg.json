@@ -1,0 +1,6 @@
+{
+  "runtime": {
+    "savestate": { "supported": true },
+    "save": { "supported": true }
+  }
+}
